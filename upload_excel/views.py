@@ -26,12 +26,13 @@ from django.http import HttpResponse
 
 
 
-
+from .excel_processing import process_amc_excel_file
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from .models import AMC, MutualFundScheme, UploadedFile
+from .models import AMC, MutualFundScheme, UploadedFile, MutualFundData
 from .forms import UploadFileForm
 from django.utils.timezone import now
+import pandas as pd
 
 # def upload_file_view(request):
 #     amcs = AMC.objects.all()
@@ -67,7 +68,9 @@ def upload_file_view(request):
             if existing_entry:
                 # Update the existing entry (Replace old file & update date)
                 existing_entry.file = uploaded_file
-                existing_entry.uploaded_at  = now()
+               
+                timestamp = now().strftime('%Y-%m-%d %H:%M:%S')
+                existing_entry.update_logs = f"[{timestamp}],\n" + (existing_entry.update_logs or "") 
                 existing_entry.save()
             else:
                 # Create a new entry if it doesn’t exist
@@ -75,10 +78,13 @@ def upload_file_view(request):
                     amc=amc,
                     scheme=scheme,
                     file=uploaded_file,
-                    uploaded_at=now(),
+                    update_logs=now(),
                 )
 
-            
+             # Trigger processing function based on AMC
+            process_amc_excel_file(amc, scheme, uploaded_file)
+
+            print("File uploaded successfully!")
 
             return redirect("success_page")  # Redirect after successful upload
 
@@ -99,3 +105,46 @@ def success_page(request):
 
 
 
+# def process_amc_excel_file(amc, scheme, file):
+#     """
+#     Determines which function to call based on the AMC.
+#     """
+#     amc_functions = {
+#         "Aditya Birla Sun Life Mutual Fund": process_48kc_excel,
+#        # "AnotherAMC": process_another_amc_excel,
+#     }
+#     print(amc.name)
+#     processing_function = amc_functions.get(amc.name, default_excel_processing)
+#     processing_function(file, scheme)
+
+# def process_48kc_excel(file, scheme):
+    
+#     print("Processes the Excel file for AMC  and stores data in MutualFundData.")
+    
+#     df = pd.read_excel(file)
+
+#     for _, row in df.iterrows():
+#         column1 = row["Column1"]
+#         column2 = row["Column2"]
+
+#         # Check if data exists for this scheme
+#         existing_entry = MutualFundData.objects.filter(scheme=scheme, column1=column1).first()
+
+#         if existing_entry:
+#             existing_entry.column2 = column2
+#             existing_entry.processed_at = now()
+#             existing_entry.save()
+#         else:
+#             MutualFundData.objects.create(
+#                 scheme=scheme,
+#                 column1=column1,
+#                 column2=column2,
+#                 processed_at=now(),
+#             )
+#         print("Data saved successfully!")
+# def default_excel_processing(file, scheme):
+#     """
+#     Default function for AMCs without specific processing logic.
+#     """
+#     print("Default processing for AMC")
+#     print(f"Processing file for {scheme.scheme_name} (Default method)")

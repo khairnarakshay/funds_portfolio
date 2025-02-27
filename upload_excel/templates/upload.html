@@ -31,7 +31,7 @@ document.getElementById("amc-dropdown").addEventListener("change", function() {
     let schemeDropdown = document.getElementById("scheme-dropdown");
     schemeDropdown.innerHTML = "<option>Loading...</option>";
 
-    fetch(`/upload_excel/get-schemes/${amcId}/`)
+    fetch(`get-schemes/${amcId}/`)
     .then(response => response.json())
     .then(data => {
         schemeDropdown.innerHTML = "";
