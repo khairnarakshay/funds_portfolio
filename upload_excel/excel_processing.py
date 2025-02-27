@@ -455,6 +455,22 @@ def JM_Financial_Mutual_Fund(file, scheme, amc):
     except Exception as e:
         print(f"Error reading Excel file: {e}")
         return
+import re
+
+# def parse_market_value(value):
+#     """ Convert market value string to a positive float, handling cases like '(1000)' and '1,000'. """
+#     if isinstance(value, str):
+#         value = value.replace(",", "")  # Remove commas (e.g., '1,000' → '1000')
+
+#         # Check if the value is in parentheses (e.g., '(1000)') and extract the number
+#         match = re.match(r"\((\d+(\.\d+)?)\)", value)
+#         if match:
+#             return float(match.group(1))  # Convert '(1000)' → '1000' (positive number)
+
+#     try:
+#         return float(value)  # Convert normal numeric strings to float
+#     except ValueError:
+#         return 0  # Default to 0 if conversion fails
 
 
 def SBI_Mutual_Fund(file, scheme, amc):
@@ -554,6 +570,9 @@ def SBI_Mutual_Fund(file, scheme, amc):
             lower_name = name.lower()
             
             # Detect section header rows and update current_category
+             # Exit the loop immediately
+            if lower_name .startswith( "grand total"):
+                break 
             if lower_name.startswith('equity'):
                 current_category = 'Equity'
                 continue
@@ -573,7 +592,8 @@ def SBI_Mutual_Fund(file, scheme, amc):
                 continue
 
             # Check if the row contains "Total" and update category total
-            if "total" in lower_name and "grand total" not in lower_name:
+            if "total" in lower_name :
+                
                 market_value = row['Market value (Rs. in Lakhs)']
                 if current_category == 'Equity':
                     
@@ -636,12 +656,12 @@ def SBI_Mutual_Fund(file, scheme, amc):
             # Store the top 5 instruments by % to NAV
             nav_percentage = row['% to AUM']
             instrument_aum_percentages.append((name, nav_percentage, market_value))
-
+        others_total = others_total + Other_current_assets_total+ money_market_total
         # Calculate combined Money Market and Others into one category
         combined_others_total = money_market_total + others_total + Other_current_assets_total
 
         # Calculate the overall total market value
-        total_market_value = equity_total + debt_total + combined_others_total
+        total_market_value = equity_total + debt_total + others_total 
         total = total_market_value if total_market_value > 0 else 1
 
         equity_percentage = (equity_total / total) * 100
@@ -667,7 +687,7 @@ def SBI_Mutual_Fund(file, scheme, amc):
         print("Top Industries:", top_sectors)
         print("Top Instruments:", top_holdings)
         print("Data saved successfully!")
-
+        
         
                # Ensure uploaded file exists
         if uploaded_file:
@@ -697,8 +717,28 @@ def SBI_Mutual_Fund(file, scheme, amc):
             
             except Exception as e:
                 print(f"Error updating the file: {e}")
+                   
         else:
             print("No uploaded file found.")
+        result = {
+        "status": "success",
+        "message": "",
+        "data": {}
+    }
+        result["data"] = {
+            "equity_total": equity_total,
+            "debt_total": debt_total,
+            "others_total": others_total,
+            "total_market_value": total_market_value,
+            "equity_percentage": equity_percentage,
+            "debt_percentage": debt_percentage,
+            "others_percentage": others_percentage,
+            "top_sectors": top_sectors,
+            "top_holdings": top_holdings,
+        }
+        result["message"] = "Data processed and updated successfully!"
+        
+        return JsonResponse(result)
 
     
     

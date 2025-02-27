@@ -69,7 +69,7 @@ def fetch_mutual_fund_schemes():
 
         return amc_schemes
     else:
-        print("❌ Failed to fetch data from AMFI.")
+        print(" Failed to fetch data from AMFI.")
         return {}
 
 def save_amc_data():
@@ -79,4 +79,4 @@ def save_amc_data():
             amc_obj, created = AMC.objects.get_or_create(name=amc_name)
             for scheme in schemes:
                 MutualFundScheme.objects.get_or_create(amc=amc_obj, scheme_name=scheme)
-    print("✅ AMC & Mutual Fund Schemes Updated in Database!")
+    print(" AMC & Mutual Fund Schemes Updated in Database!")

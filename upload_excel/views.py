@@ -24,8 +24,17 @@ from django.http import HttpResponse
 
 #     return render(request, 'upload.html', {'amcs': amcs})
 
-
-
+import matplotlib.pyplot as plt
+import base64
+from io import BytesIO
+from django.http import JsonResponse
+from django.utils.timezone import now
+from .models import UploadedFile, AMC
+from .forms import UploadFileForm
+ 
+import matplotlib.pyplot as plt
+import base64
+from io import BytesIO
 from .excel_processing import process_amc_excel_file
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
@@ -83,10 +92,33 @@ def upload_file_view(request):
 
              # Trigger processing function based on AMC
             process_amc_excel_file(amc, scheme, uploaded_file)
+            
+             # Generate Graphs
+               
+             # Prepare JSON response with selected scheme data
+            result = {
+                #"scheme": scheme.name,  # Assuming scheme has a name field
+                #"amc": amc.name,  # Assuming AMC has a name field
+                #"file_url": existing_entry.file.url if existing_entry.file else None,
+                "total_market_value": existing_entry.total_market_value,
+                "equity_total": existing_entry.equity_total,
+                "debt_total": existing_entry.debt_total,
+                "other_total": existing_entry.other_total,
+                "top_sectors": existing_entry.top_sectors,
+                "top_holdings": existing_entry.top_holdings,
+                "created_at": existing_entry.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                #"update_logs": existing_entry.update_logs
+            }
+
+            return JsonResponse({"data": result, "message": "Scheme data fetched successfully!"})
 
             print("File uploaded successfully!")
+            
+            
+            
 
-            return redirect("success_page")  # Redirect after successful upload
+            #return redirect("success_page")  # Redirect after successful upload
+            
 
     else:
         form = UploadFileForm()
@@ -104,6 +136,11 @@ def success_page(request):
      return HttpResponse('File uploaded successfully!')
 
 
+
+
+
+
+   
 
 # def process_amc_excel_file(amc, scheme, file):
 #     """
