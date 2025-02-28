@@ -100,10 +100,11 @@ def upload_file_view(request):
                 #"scheme": scheme.name,  # Assuming scheme has a name field
                 #"amc": amc.name,  # Assuming AMC has a name field
                 #"file_url": existing_entry.file.url if existing_entry.file else None,
-                "total_market_value": existing_entry.total_market_value,
-                "equity_total": existing_entry.equity_total,
-                "debt_total": existing_entry.debt_total,
-                "other_total": existing_entry.other_total,
+                #"total_market_value": existing_entry.total_market_value,
+                #"equity_total": existing_entry.equity_total,
+               # "debt_total": existing_entry.debt_total,
+                #"other_total": existing_entry.other_total,
+                "category_total": existing_entry.category_total,
                 "top_sectors": existing_entry.top_sectors,
                 "top_holdings": existing_entry.top_holdings,
                 "created_at": existing_entry.created_at.strftime('%Y-%m-%d %H:%M:%S'),

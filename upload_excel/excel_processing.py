@@ -32,273 +32,36 @@ def safe_strip(value):
         return value.strip()
     return str(value) if pd.notna(value) else ''  # Convert NaN to empty string
 
-# def process_48kc_excel(file, scheme,amc):
-#     print(amc.name)
-#     """
-    
-#     Processes Excel file for the Aditya Birla Sun Life Mutual Fund and stores data in MutualFundData.
-#     """
-#     print("Processing Excel file for AMC and storing data in MutualFundData.")
 
-#     try:
-#         df = pd.read_excel(file,header=3)
-#         df.columns = df.columns.str.strip()  # Clean column names
-
-#         # Replace "NIL" with 0 and fill missing values for numeric columns
-#         df.replace("NIL", 0, inplace=True)
-#         df.fillna({
-#          'Quantity': 0,
-#          'Market Value (Rs. In Lakhs)': 0,
-#          '% age to NAV': 0,
-#          'ISIN': '',
-#         }, inplace=True)
-
-#          # Convert to numeric types where needed
-#         #df['Quantity'] = pd.to_numeric(df['Quantity'], errors='coerce').fillna(0)
-#         if 'Quantity' in df.columns:
-#             df['Quantity'] = pd.to_numeric(df['Quantity'], errors='coerce').fillna(0)
-#         elif 'Quantity/Face Value' in df.columns:
-#             df['Quantity/Face Value'] = pd.to_numeric(df['Quantity/Face Value'], errors='coerce').fillna(0)
-#             df.rename(columns={'Quantity/Face Value': 'Quantity'}, inplace=True)
-    
-#         df['Market Value (Rs. In Lakhs)'] = pd.to_numeric(df['Market Value (Rs. In Lakhs)'], errors='coerce').fillna(0)
-        
-#         # convert yield % column to folat after stripping %
-#         if 'Yield %' in df.columns:
-#             df['Yield %'] = df['Yield %'].astype(str).str.rstrip('%').replace('nan', None)
-#             df['Yield %'] = pd.to_numeric(df['Yield %'], errors='coerce').fillna(0)
-
-#             print("Columns in DataFrame:", df.columns.tolist())
-
-#     # Get or create the Portfolio object
-#         # uploded_files, created = UploadedFile.objects.get_or_create(
-#         #     amc=amc,
-#         #     scheme=scheme,
-#         #     file=file,
-#         #     uploaded_at=now(),   
-#         # )
-#         # if created:
-#         #     print("New Portfolio created!")
-#         # else:
-#         #     print("Existing Portfolio updated!")
-            
-#         from django.utils.timezone import now
-
-# # Get or create the uploaded file record
-#         uploaded_file, created = UploadedFile.objects.get_or_create(
-#             amc=amc,
-#             scheme=scheme,
-#             file=file,
-#             uploaded_at=now()  # Adjust 'uploaded_at' to current time only if you're creating a new record
-#         )
-
-#         if created:
-#             print("New Portfolio created!")
-#         else:
-#     # If the record already exists, you might want to update the file-related fields or perform other actions
-#             uploaded_file.uploaded_at = now()  # This can be updated even for an existing record
-#             uploaded_file.save()
-#             print("Existing Portfolio updated!")
-
-            
-            
-#          # Initialize individual category totals
-#         equity_total = 0
-#         debt_total = 0
-#         money_market_total = 0
-#         others_total = 0
-
-#         #     # Variable to track the current section/category from the Excel file
-#         current_category = None
-
-#         # Create a dictionary to store the total investment per industry/industry rating
-#         industry_investments = {}
-
-#          # Create a list to store the instruments and their % age to NAV for top 5
-#         instrument_nav_percentages = []
-
-#         deleted_count, _ = MutualFundData.objects.filter(scheme=scheme).delete()
-#         if deleted_count > 0:
-#             print(f"Deleted {deleted_count} existing records for scheme: {scheme.scheme_name}")
-            
-#         # Process each row in the DataFrame
-#         for index, row in df.iterrows():
-#             name = safe_strip(row.get('Name of the Instruments', ''))
-#             lower_name = name.lower()
-
-#         # Detect section header rows and update current_category
-#             if lower_name.startswith('equity'):
-#                 current_category = 'Equity'
-#                 continue  # Skip header row
-#             elif lower_name.startswith('debt'):
-#                 current_category = 'Debt'
-#                 continue
-#             elif lower_name.startswith('money market'):
-#                 current_category = 'Money Market'
-#                 continue
-#             elif lower_name.startswith('other'):
-#                 current_category = 'Others'
-#                 continue
-
-#             # Detect subtotal/total rows. For Money Market and Others, update the total if desired.
-#             if lower_name.startswith('subtotal') or lower_name.startswith('total'):
-#                 if current_category == 'Money Market':
-#                     money_market_total = row['Market Value (Rs. In Lakhs)']
-#                 elif current_category == 'Others':
-#                     others_total = row['Market Value (Rs. In Lakhs)']
-#                 continue
-
-#              # Skip rows that are not instrument data (empty name or missing ISIN)
-#             if not name:
-#                 continue
-#             isin = safe_strip(row.get('ISIN', ''))
-#             if not isin:
-#                 continue
-
-#              # Determine instrument type; default to 'Others' if current_category is not set.
-#             instrument_type = current_category if current_category is not None else 'Others'
-#             market_value = row['Market Value (Rs. In Lakhs)']
-
-#             # Use get_or_create() to prevent duplicate objects based on ISIN
-#             # if alrady exits then delete first and then create new one
-            
-            
-#             # Delete existing records with the same scheme name
-#             # Delete all existing records for the same scheme
-             
-#             # deleted_count, _ = MutualFundData.objects.filter(scheme=scheme).delete()
-            
-#             # if deleted_count > 0:
-#             #     print(f"Deleted {deleted_count} existing records for scheme: {scheme.scheme_name}")
-
-#             # Insert new data
-            
-#             instrument = MutualFundData(
-#                 amc=amc,
-#                 scheme=scheme,
-#                 instrument_name=name,
-#                 isin=isin,
-#                 industry_rating=safe_strip(row.get('Industry/Rating', '')),
-#                 quantity=row['Quantity'],
-#                 market_value=market_value,
-#                 percentage_to_nav=row['% age to NAV'],
-#                 yield_percentage=row['Yield %'] if 'Yield %' in df.columns else None,
-#                 ytc=row.get('^YTC (AT1/Tier 2 bonds)', None),
-#                 instrument_type=instrument_type,
-#                 )
-#             instrument.save()
-
-
-#                 # Update totals based on the instrument type
-#             if instrument_type == 'Equity':
-#                 equity_total += market_value
-#             elif instrument_type == 'Debt':
-#                 debt_total += market_value
-#             elif instrument_type == 'Money Market':
-#                 money_market_total += market_value
-#             elif instrument_type == 'Others':
-#                 others_total += market_value
-                
-#                 # Aggregate investment for industry/ratings
-#             industry = safe_strip(row.get('Industry/Rating', ''))
-#             if industry:
-#                 if industry not in industry_investments:
-#                     industry_investments[industry] = 0
-#                 industry_investments[industry] += market_value
-            
-#             # Store the top 5 instruments by % age to NAV
-#              # Store the instrument and its % age to NAV for top 5 instruments
-#             nav_percentage = row['% age to NAV']
-#             instrument_nav_percentages.append((name, nav_percentage, market_value))
-            
-#             # Combine Money Market and Others into one category
-#             combined_others_total = money_market_total + others_total
-            
-#             # Calculate the overall total market value
-#             total_market_value = equity_total + debt_total + combined_others_total
-            
-#              # Save these totals to the Portfolio (for Equity, Debt, and Others combined)
-#             # uploded_file.equity_total = equity_total
-#             # uploded_file.debt_total = debt_total
-#             # uploded_file.other_total = combined_others_total
-#             # uploded_file.total_market_value = total_market_value
-#             # uploded_file.save()
-            
-#             print(equity_total)
-#             print(debt_total)
-#             print(combined_others_total)
-#             print("Data saved successfully!")
-            
-#             # Calculate percentage shares (avoiding division by zero)
-#             total = total_market_value if total_market_value > 0 else 1
-#             equity_percentage = (equity_total / total) * 100
-#             debt_percentage = (debt_total / total) * 100
-#             others_percentage = (combined_others_total / total) * 100
-            
-#              # Get top 5 industries/ratings by total market value
-#             sorted_industries = sorted(industry_investments.items(), key=lambda x: x[1], reverse=True)[:5]
-#             top_industries = [{"industry": industry, "investment": round(investment, 2)} for industry, investment in sorted_industries]
-            
-#             # Get top 5 industries/ratings by total market value
-#             sorted_industries = sorted(industry_investments.items(), key=lambda x: x[1], reverse=True)[:5]
-#             top_industries = [{"industry": industry, "investment": round(investment, 2)} for industry, investment in sorted_industries]
-
-#             # Get top 5 instruments by % age to NAV
-#             sorted_instruments = sorted(instrument_nav_percentages, key=lambda x: x[1], reverse=True)[:5]
-#             top_instruments = [{"instrument_name": instrument, "nav_percentage": round(nav_percentage, 2)} for instrument, nav_percentage, _ in sorted_instruments]
-
-#         print("Equity Total:", equity_total)
-#         print("Debt Total:", debt_total)
-#         print("Money Market Total:", money_market_total)
-#         print("Others Total:", others_total)
-#         print("Total Market Value:", total_market_value)
-#         print("Equity Percentage:", equity_percentage)
-#         print("Debt Percentage:", debt_percentage)
-#         print("Others Percentage:", others_percentage)
-#         print("Top Industries:", top_industries)
-#         print("Top Instruments by % age to NAV:", top_instruments)
-#         print("Data saved successfully!")
-        
-#         uploaded_file.equity_total = equity_total
-#         uploaded_file.debt_total = debt_total
-#         uploaded_file.other_total = combined_others_total
-#         uploaded_file.total_market_value = total_market_value
-#         uploaded_file.save()
-#     except Exception as e:
-#         print(f"Error reading Excel file: {e}")
-#         return
-    
 def JM_Financial_Mutual_Fund(file, scheme, amc):
     print(amc.name)
-    print(f'scheme name :{scheme.scheme_name}')
-    """
-    
-    Processes Excel file for the AMC and updates existing entry in MutualFundData if it exists.
-    """
+    print(f'Scheme Name: {scheme.scheme_name}')
     print("Processing Excel file for AMC and updating the existing data in MutualFundData.")
 
     try:
         df = pd.read_excel(file, header=3)
-        df.columns = df.columns.str.strip()  # Clean column names
-        df.columns = df.columns.str.replace('\n', ' ', regex=True)
-        # Replace "NIL" with 0 and fill missing values for numeric columns
+        df.columns = df.columns.str.strip().str.replace('\n', ' ', regex=True)  # Clean column names
+
+        # Replace "NIL" with 0 and handle missing values
         df.replace("NIL", 0, inplace=True)
         df.fillna({
-         'Quantity': 0,
-         'Market Value (Rs. In Lakhs)': 0,
-         '% age to NAV': 0,
-         'ISIN': '',
+            'Quantity': 0,
+            'Market Value (Rs. In Lakhs)': 0,
+            '% age to NAV': 0,
+            'ISIN': '',
         }, inplace=True)
 
+        # Convert Quantity to numeric if available
         if 'Quantity' in df.columns:
             df['Quantity'] = pd.to_numeric(df['Quantity'], errors='coerce').fillna(0)
         elif 'Quantity/Face Value' in df.columns:
             df['Quantity/Face Value'] = pd.to_numeric(df['Quantity/Face Value'], errors='coerce').fillna(0)
             df.rename(columns={'Quantity/Face Value': 'Quantity'}, inplace=True)
 
-        df['Market Value (Rs. In Lakhs)'] = pd.to_numeric(df['Market Value (Rs. In Lakhs)'], errors='coerce').fillna(0)
+        if 'Market Value (Rs. In Lakhs)' in df.columns:
+            df['Market Value (Rs. In Lakhs)'] = pd.to_numeric(df['Market Value (Rs. In Lakhs)'], errors='coerce').fillna(0)
 
-        # Handle 'Yield %' column
+        # Handle 'Yield %' column safely
         if 'Yield %' in df.columns:
             df['Yield %'] = df['Yield %'].astype(str).str.rstrip('%').replace('nan', None)
             df['Yield %'] = pd.to_numeric(df['Yield %'], errors='coerce').fillna(0)
@@ -309,168 +72,267 @@ def JM_Financial_Mutual_Fund(file, scheme, amc):
         if uploaded_file:
             print("Existing Portfolio found, updating the totals!")
         else:
-            # Create a new record if it doesn't exist
             uploaded_file = UploadedFile.objects.create(
                 amc=amc,
                 scheme=scheme,
                 file=file,
-                update_logs=now()  # Adjust 'uploaded_at' to current time only if you're creating a new record
+                update_logs=now()  # Adjust timestamp
             )
             print("New Portfolio created!")
 
-        #check if the MutualFundData already exists for the scheme
-        #if exists then delete all the records for the scheme
-        
+        # Delete old MutualFundData records for the scheme
         deleted_count, _ = MutualFundData.objects.filter(scheme=scheme).delete()
         if deleted_count > 0:
             print(f"Deleted {deleted_count} existing records for scheme: {scheme.scheme_name}")
+
+        # Initialize category totals
+        equity_total = debt_total = money_market_total = others_total = cash_equivalents_total = treps_reverse_repo_total = alternative_investment_funds_units_total = 0
+        industry_investments = {}  # Store industry-wise investments
+        instrument_nav_percentages = []  # Store top 5 instruments by NAV
+
+        current_category = None  # Keep track of current category
         
+        category_totals = {
+            'Equity': 0,
+            'Debt': 0,
+            'Money Market': 0,
+            'Cash & Cash Equivalents': 0,
+            'Alternative Investment Funds Units': 0,
+            'Reverse Repo/Corporate': 0,
+            'Others': 0
+            }
 
-        # Initialize individual category totals
-        equity_total = 0
-        debt_total = 0
-        money_market_total = 0
-        others_total = 0
-
-        # Create a dictionary to store the total investment per industry/industry rating
-        industry_investments = {}
-
-        # Create a list to store the instruments and their % age to NAV for top 5
-        instrument_nav_percentages = []
-
-        # Process each row in the DataFrame
         for index, row in df.iterrows():
-            name = safe_strip(row.get('Name of the Instruments', ''))
-            lower_name = name.lower()
+            name = safe_strip(str(row.get('Name of the Instruments', ''))).lower()
+            if name.startswith("grand total"):
+                break
 
-            # Detect section header rows and update current_category
-            if lower_name.startswith('equity'):
+            # Detect section headers and update category
+            if name.startswith('equity'):
                 current_category = 'Equity'
                 continue
-            elif lower_name.startswith('debt'):
+            elif name.startswith('debt'):
                 current_category = 'Debt'
                 continue
-            elif lower_name.startswith('money market'):
+            elif name.startswith('money market'):
                 current_category = 'Money Market'
                 continue
-            elif lower_name.startswith('other'):
+            elif name.startswith('cash & cash equivalents'):
+                current_category = 'Cash & Cash Equivalents'
+                continue
+            elif any(keyword in name for keyword in ['reverse repo', 'corporate debt repo']):
+                current_category = 'Reverse Repo/Corporate'
+                continue
+
+            elif name.startswith('alternative investment'):
+                current_category = 'Alternative Investment Funds Units'
+                continue
+            elif name.startswith('other'):
                 current_category = 'Others'
                 continue
 
-            # Skip rows that are not instrument data (empty name or missing ISIN)
-            if not name:
+            if not name or 'ISIN' not in df.columns:
+                continue  # Skip rows without ISIN or instrument name
+
+            row_name = name.lower()
+
+            # Skip any row where 'subtotal' is present
+            if "subtotal" in row_name:
+                print(f"Skipping subtotal row: {name}")
                 continue
-            isin = safe_strip(row.get('ISIN', ''))
+
+            # Process only 'total' rows (excluding 'subtotal')
+            if "total" in row_name:
+                market_value = row.get('Market Value (Rs. In Lakhs)', 0)
+
+                # Ensure we add a category's total only once
+                if current_category not in category_totals:
+                    category_totals[current_category] = market_value
+                else:
+                    print(f"Skipping duplicate total for category: {current_category}")
+                    continue  # Avoid adding duplicate total values
+
+                # Assign correct totals to each category
+                if current_category == 'Equity':
+                    equity_total += market_value
+                elif current_category == 'Debt':
+                    debt_total += market_value
+                elif current_category == 'Money Market':
+                    money_market_total += market_value
+                elif current_category == 'Cash & Cash Equivalents':
+                    cash_equivalents_total += market_value
+                elif current_category == 'Alternative Investment Funds Units':
+                    alternative_investment_funds_units_total += market_value
+                elif current_category == 'Reverse Repo/Corporate':
+                    treps_reverse_repo_total += market_value
+                elif current_category == 'Others':
+                    others_total += market_value
+
+                # Print debugging output
+                print(f"{current_category} Total: {market_value}")
+
+            isin = safe_strip(str(row.get('ISIN', '')))
             if not isin:
                 continue
 
-            # Determine instrument type; default to 'Others' if current_category is not set
-            instrument_type = current_category if current_category is not None else 'Others'
-            market_value = row['Market value(Rs. in Lakhs)']
+            instrument_type = current_category if current_category else 'Others'
+            market_value = row.get('Market Value (Rs. In Lakhs)', 0)
 
-            # Insert new data into MutualFundData
+
+            category_totals = {}
+            row_name = name.lower()
+
+            # Skip any row where 'subtotal' is present
+            if "subtotal" in row_name:
+                print(f"Skipping subtotal row: {name}")
+                continue
+
+            # Now process only 'total' rows (excluding 'subtotal')
+            if "total" in row_name:
+                market_value = row.get('Market Value (Rs. In Lakhs)', 0)
+
+                # Ensure that we only add a category's total once
+                if current_category not in category_totals:
+                    category_totals[current_category] = market_value
+                else:
+                    print(f"Skipping duplicate total for category: {current_category}")
+                    continue  # Avoid adding duplicate total values
+
+                # Assign correct totals to each category
+                if current_category == 'Equity':
+                    equity_total += market_value
+                elif current_category == 'Debt':
+                    debt_total += market_value
+                elif current_category == 'Money Market':
+                    money_market_total += market_value
+                elif current_category == 'Cash & Cash Equivalents':
+                    cash_equivalents_total += market_value
+                elif current_category == 'Alternative Investment Fund Units':
+                    alternative_investment_funds_units_total += market_value
+                elif current_category == 'Reverse Repo/Corporate':
+                    treps_reverse_repo_total += market_value
+                elif current_category == 'Others':
+                    others_total += market_value
+                
+                # Print debugging output
+                print(f"{current_category} Total: {market_value}")
+
+                
+            isin = safe_strip(str(row.get('ISIN', '')))
+            if not isin:
+                continue
+
+            instrument_type = current_category if current_category else 'Others'
+            market_value = row.get('Market Value (Rs. In Lakhs)', 0)
+
+            # Insert new record into MutualFundData
             instrument = MutualFundData(
                 amc=amc,
                 scheme=scheme,
                 instrument_name=name,
                 isin=isin,
                 industry_rating=safe_strip(row.get('Industry/Rating', '')),
-                quantity=row['Quantity'],
+                quantity=row.get('Quantity', 0),
                 market_value=market_value,
-                percentage_to_nav=row['% age to NAV'],
-                yield_percentage=row['Yield %'] if 'Yield %' in df.columns else None,
+                percentage_to_nav=row.get('% age to NAV', 0),
+                yield_percentage=row.get('Yield %', None),
                 ytc=row.get('^YTC (AT1/Tier 2 bonds)', None),
                 instrument_type=instrument_type,
             )
             instrument.save()
 
-            # Update totals based on the instrument type
-            if instrument_type == 'Equity':
-                equity_total += market_value
-            elif instrument_type == 'Debt':
-                debt_total += market_value
-            elif instrument_type == 'Money Market':
-                money_market_total += market_value
-            elif instrument_type == 'Others':
-                others_total += market_value
+            # Aggregate industry investments
+            industry_rating = safe_strip(row.get('Rating / Industry^', ''))
+            if industry_rating:
+                industry_investments[industry_rating] = industry_investments.get(industry_rating, 0) + market_value
 
-            # Aggregate investment for industry/ratings
-            industry = safe_strip(row.get('Industry/Rating', ''))
-            if industry:
-                if industry not in industry_investments:
-                    industry_investments[industry] = 0
-                industry_investments[industry] += market_value
-
-            # Store the top 5 instruments by % age to NAV
-            nav_percentage = row['% age to NAV']
+            # Store top 5 instruments by NAV
+            nav_percentage = row.get('% age to NAV', 0)
             instrument_nav_percentages.append((name, nav_percentage, market_value))
 
-        # Calculate combined Money Market and Others into one category
-        combined_others_total = money_market_total + others_total
-
-        # Calculate the overall total market value
-        total_market_value = equity_total + debt_total + combined_others_total
-
-        # Calculate percentage shares (avoiding division by zero)
+       # combined_others_total = money_market_total + others_total + cash_equivalents_total + treps_reverse_repo_total + alternative_investment_funds_units_total
+        #print(f'combined others total: {combined_others_total}')
+        
+        total_market_value = equity_total + debt_total  + money_market_total + cash_equivalents_total + treps_reverse_repo_total + alternative_investment_funds_units_total
+        #print(f' line number 862 : total market value: {total_market_value}')
+        
         total = total_market_value if total_market_value > 0 else 1
         equity_percentage = (equity_total / total) * 100
         debt_percentage = (debt_total / total) * 100
-        others_percentage = (combined_others_total / total) * 100
+        #others_percentage = (combined_others_total / total) * 100
 
-        # Get top 5 industries/ratings by total market value
+        # Get top 5 industries by market value
         sorted_industries = sorted(industry_investments.items(), key=lambda x: x[1], reverse=True)[:5]
-        #top_industries = [{"industry": industry, "investment": round(investment, 2)} for industry, investment in sorted_industries]
         top_sector = [{"industry": industry, "investment": round(investment, 2)} for industry, investment in sorted_industries]
-        # Get top 5 instruments by % age to NAV
-        sorted_instruments = sorted(instrument_nav_percentages, key=lambda x: x[1], reverse=True)[:5]
-        #top_instruments = [{"instrument_name": instrument, "nav_percentage": round(nav_percentage, 2)} for instrument, nav_percentage, _ in sorted_instruments]
-        top_holdings = [{"instrument_name": instrument, "nav_percentage": round(nav_percentage, 2)} for instrument, nav_percentage, _ in sorted_instruments]
 
-        # Log totals and top instruments/industries
-        print("Equity Total:", equity_total)
-        print("Debt Total:", debt_total)
-        print("Money Market Total:", money_market_total)
-        print("Others Total:", others_total)
-        print("Total Market Value:", total_market_value)
-        print("Equity Percentage:", equity_percentage)
-        print("Debt Percentage:", debt_percentage)
-        print("Others Percentage:", others_percentage)
-        print("Top Industries:", top_sector)
-        print("Top Instruments by % age to NAV:", top_holdings)
-        print("Data saved successfully!")
-        print(f'type of top_sector : {type(top_sector)}')
-        # Update the uploaded file with the latest totals
-        if uploaded_file:
+        # Get top 5 instruments by NAV
+        sorted_instruments = sorted(instrument_nav_percentages, key=lambda x: x[1], reverse=True)[:5]
+        top_holdings = [{"instrument_name": instrument, "nav_percentage": round(nav_percentage, 2)}
+                        for instrument, nav_percentage, _ in sorted_instruments]
+
+        #Print results
+        print(' line number 878------------------------------------------')
+        print(f"Equity Total: {equity_total}")
+        print(f"Debt Total: {debt_total}")
+        print(f"Money Market Total: {money_market_total}")
+        print(f"Others Total: {others_total}")
+        print(f'Cash & Cash Equivalents Total: {cash_equivalents_total}')
+        print(f'Treps/Reverse Repo/Corporate Total: {treps_reverse_repo_total}')
+        print(f'Alternative Investment Funds Units Total: {alternative_investment_funds_units_total}')
+        print(f"Total Market Value: {total_market_value}")
+        print('------------------------------------------')
+        print(f'Category Totl in Dictionary{category_totals}')
+        print(f"Top Sectors: {top_sector}")
+        print(f"Top Holdings: {top_holdings}")
+        
+        category_totals = {
+            'Equity': equity_total,
+            'Debt': debt_total,
+            'Money Market': money_market_total,
+            'Others': others_total,
+            'Cash & Cash Equivalents': cash_equivalents_total,
+            'Treps/Reverse Repo/Corporate': treps_reverse_repo_total,
+            'Alternative Investment Funds Units': alternative_investment_funds_units_total
             
+        }
+        print('------------------------------------------')
+        print(f'Category Totl in Dictionary{category_totals}')
+        
+        # Update the uploaded file record
+        if uploaded_file:
             uploaded_file.equity_total = equity_total
             uploaded_file.debt_total = debt_total
-            uploaded_file.other_total = combined_others_total
+            uploaded_file.other_total = others_total
             uploaded_file.total_market_value = total_market_value
             uploaded_file.top_holdings = top_holdings
             uploaded_file.top_sectors = top_sector
+            uploaded_file.category_total = category_totals
             uploaded_file.save()
+        result = {
+        "status": "success",
+        "message": "",
+        "data": {}
+    }
+        result["data"] = {
+            "equity_total": equity_total,
+            "debt_total": debt_total,
+            "others_total": others_total,
+            "total_market_value": total_market_value,
+            "equity_percentage": equity_percentage,
+            "debt_percentage": debt_percentage,
+            #"others_percentage": others_percentage,
+            "top_sectors": top_sector,
+            "top_holdings": top_holdings,
+        }
+        result["message"] = "Data processed and updated successfully!"
         
-        print(f'type of top_sector : {type(top_sector)}')
+        return JsonResponse(result)
 
     except Exception as e:
-        print(f"Error reading Excel file: {e}")
-        return
-import re
+        print(f"Error processing file: {e}")
+        import traceback
+        print(traceback.format_exc())  # This will print more detailed traceback info
 
-# def parse_market_value(value):
-#     """ Convert market value string to a positive float, handling cases like '(1000)' and '1,000'. """
-#     if isinstance(value, str):
-#         value = value.replace(",", "")  # Remove commas (e.g., '1,000' → '1000')
-
-#         # Check if the value is in parentheses (e.g., '(1000)') and extract the number
-#         match = re.match(r"\((\d+(\.\d+)?)\)", value)
-#         if match:
-#             return float(match.group(1))  # Convert '(1000)' → '1000' (positive number)
-
-#     try:
-#         return float(value)  # Convert normal numeric strings to float
-#     except ValueError:
-#         return 0  # Default to 0 if conversion fails
 
 
 def SBI_Mutual_Fund(file, scheme, amc):
@@ -688,6 +550,13 @@ def SBI_Mutual_Fund(file, scheme, amc):
         print("Top Instruments:", top_holdings)
         print("Data saved successfully!")
         
+        category_totals = { 
+                           'Equity': equity_total,
+                           'Debt': debt_total,
+                           'Money Market': money_market_total,
+                           'Others': others_total,
+                           'Total Market Value': total_market_value,
+                            }  
         
                # Ensure uploaded file exists
         if uploaded_file:
@@ -708,6 +577,7 @@ def SBI_Mutual_Fund(file, scheme, amc):
                 # uploaded_file.others_percentage = others_percentage
                 
                 # Top sectors and holdings
+                uploaded_file.category_total = category_totals
                 uploaded_file.top_sectors = top_sectors
                 uploaded_file.top_holdings = top_holdings
                 
@@ -988,7 +858,7 @@ def SBI_Mutual_Fund(file, scheme, amc):
         
         
 
-def default_excel_processing(file, scheme):
+def default_excel_processing(file, scheme, amc):
     """
     Default function for AMCs without specific processing logic.
     """

@@ -4,8 +4,7 @@ from django.utils.safestring import mark_safe
 # Register your models here.
 
 class UploadedFileAdmin(admin.ModelAdmin):
-    list_display = ('amc', 'scheme', 'file', 'total_market_value', 'equity_total', 
-                    'debt_total', 'other_total',  'display_top_sectors', 'display_top_holdings', 'created_at', 'update_logs')
+    list_display = ('amc', 'scheme', 'file', 'category_total',  'display_top_sectors', 'display_top_holdings', 'created_at', 'update_logs')
 
     def display_top_sectors(self, obj):
         return mark_safe(f"<pre>{obj.top_sectors}</pre>") if obj.top_sectors else "No Data"

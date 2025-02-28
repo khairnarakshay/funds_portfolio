@@ -19,15 +19,18 @@ class UploadedFile(models.Model):
     scheme = models.ForeignKey(MutualFundScheme, on_delete=models.CASCADE,default= 1)
     file = models.FileField(upload_to="uploads/")
     #new added fields
-    total_market_value = models.FloatField(default=0)
-    equity_total = models.FloatField(default=0)
-    debt_total = models.FloatField(default=0)
-    other_total = models.FloatField(default=0)
+    category_total = models.JSONField( default=dict, blank=True)
+    # total_market_value = models.FloatField(default=0)
+    # equity_total = models.FloatField(default=0)
+    # debt_total = models.FloatField(default=0)
+    # other_total = models.FloatField(default=0)
     top_sectors = models.JSONField(default=dict, blank=True)
     top_holdings = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
         
     update_logs = models.TextField(blank=True, null=True)
+    
+    
 
     def add_log(self):
         """Function to add a timestamp log."""
